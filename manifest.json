@@ -1,9 +1,9 @@
 {
-  "name": "payment-provider-example",
-  "vendor": "vtex",
+  "name": "dinelco-payment-provider",
+  "vendor": "bepsapartnerpy",
   "version": "1.2.0",
-  "title": "Payment Provider Example",
-  "description": "Reference app for Payment-Provider protocol implementers",
+  "title": "Dinelco Payment Provider",
+  "description": "Dinelco Payment-Provider",
   "builders": {
     "paymentProvider": "1.x",
     "node": "6.x",
