@@ -2,7 +2,7 @@
   "name": "Dinelco",
   "paymentMethods": [
     {
-      "name": "Dinelco",
+      "name": "Privatelabels",
       "allowsSplit": "disabled"
     }
   ],
