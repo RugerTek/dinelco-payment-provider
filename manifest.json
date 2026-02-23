@@ -1,7 +1,7 @@
 {
   "name": "dinelco-payment-provider",
   "vendor": "bepsapartnerpy",
-  "version": "1.2.4-beta.0",
+  "version": "1.2.5-beta.0",
   "title": "Dinelco Payment Provider",
   "description": "Dinelco Payment-Provider",
   "builders": {
