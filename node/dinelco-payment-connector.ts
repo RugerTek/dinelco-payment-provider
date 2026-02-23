@@ -1,6 +1,7 @@
 import {
   AuthorizationRequest,
   AuthorizationResponse,
+  Authorizations,
   CancellationRequest,
   CancellationResponse,
   Cancellations,
@@ -52,10 +53,6 @@ class DinelcoPaymentConnector extends PaymentProvider {
         return persistedResponse
       }
 
-      // if (!isCardAuthorization(authorization)) {
-      //   throw new Error('Dinelco only supports card payments')
-      // }
-
       const dinelcoClient = this.createDinelcoClient(authorization)
       const sessionData = this.createSessionDataFromRequest(authorization)
 
@@ -104,15 +101,13 @@ class DinelcoPaymentConnector extends PaymentProvider {
 
       return response
     } catch (error) {
-      return {
-        status: 'denied',
-        paymentId: authorization.paymentId,
+      return Authorizations.deny(authorization, {
         acquirer: 'Dinelco',
         code: 'generic-error',
         message:
           error instanceof Error ? error.message : 'Unknown error occurred',
         tid: authorization.transactionId,
-      }
+      })
     }
   }
 
