@@ -1,3 +1,5 @@
+import { AuthorizationResponse } from '@vtex/payment-provider'
+
 export interface DinelcoConfig {
   apiKey: string
   environment: 'sandbox' | 'production'
@@ -97,4 +99,9 @@ export interface DinelcoError {
   error: string
   message: string
   statusCode: number
+}
+
+export interface PersistedPaymentData {
+  response: AuthorizationResponse
+  session?: CreateSessionResponse
 }

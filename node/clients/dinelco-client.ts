@@ -17,8 +17,11 @@ export class DinelcoClient extends ExternalClient {
     context: IOContext,
     options: InstanceOptions & { config: DinelcoConfig }
   ) {
-    const env = (options.config.environment ?? 'sandbox') as 'production' | 'sandbox'
-    const baseURL = DINELCO_URLS[env] ?? DINELCO_URLS['sandbox']
+    const env = (options.config.environment ?? 'sandbox') as
+      | 'production'
+      | 'sandbox'
+
+    const baseURL = DINELCO_URLS[env] ?? DINELCO_URLS.sandbox
 
     super(baseURL, context, {
       ...options,
@@ -34,21 +37,14 @@ export class DinelcoClient extends ExternalClient {
     sessionData: CreateSessionRequest
   ): Promise<CreateSessionResponse> {
     try {
-      const response = await this.http.post<CreateSessionResponse>(
+      return await this.http.post<CreateSessionResponse>(
         '/dinelco-checkout/api/v1/checkout-session',
         sessionData,
         {
           metric: 'dinelco-create-session',
         }
       )
-
-      return response
     } catch (error) {
-      console.error('Error creating Dinelco checkout session', {
-        error,
-        sessionData,
-      })
-
       if (error.response?.data) {
         const dinelcoError = error.response.data as DinelcoError
 
@@ -91,57 +87,7 @@ export class DinelcoClient extends ExternalClient {
         raw: response,
       }
     } catch (error) {
-      console.error('Error querying Dinelco session status', {
-        error,
-        sessionId,
-      })
       throw new Error('Failed to query Dinelco session status')
-    }
-  }
-
-  public async cancelPayment(operationNumber: string): Promise<boolean> {
-    try {
-      await this.http.post(
-        `/dinelco-checkout/api/v1/payment/${operationNumber}/cancel`,
-        {},
-        {
-          metric: 'dinelco-cancel-payment',
-        }
-      )
-
-      return true
-    } catch (error) {
-      console.error('Error canceling Dinelco payment', {
-        error,
-        operationNumber,
-      })
-
-      return false
-    }
-  }
-
-  public async refundPayment(
-    operationNumber: string,
-    amount?: number
-  ): Promise<boolean> {
-    try {
-      await this.http.post(
-        `/dinelco-checkout/api/v1/payment/${operationNumber}/refund`,
-        amount ? { amount } : {},
-        {
-          metric: 'dinelco-refund-payment',
-        }
-      )
-
-      return true
-    } catch (error) {
-      console.error('Error refunding Dinelco payment', {
-        error,
-        operationNumber,
-        amount,
-      })
-
-      return false
     }
   }
 }
