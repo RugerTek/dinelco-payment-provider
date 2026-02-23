@@ -3,6 +3,7 @@ import {
   AuthorizationResponse,
   CancellationRequest,
   CancellationResponse,
+  Cancellations,
   CustomField,
   InboundRequest,
   InboundResponse,
@@ -118,14 +119,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
   public async cancel(
     cancellation: CancellationRequest
   ): Promise<CancellationResponse> {
-    return {
-      code: '0000',
-      message:
-        'Esta funcionalidad solo esta disponible desde el portal de Dinelco.',
-      cancellationId: cancellation.transactionId,
-      paymentId: cancellation.paymentId,
-    } as CancellationResponse
-    // throw new Error('Method not implemented.');
+    return Cancellations.manual(cancellation)
   }
 
   public async refund(refund: RefundRequest): Promise<RefundResponse> {
