@@ -25,6 +25,20 @@
         "host": "heimdall.vtexpayments.com.br",
         "path": "/api/payment-provider/callback/*"
       }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "dev-sgwf-01.bepsa.com.py",
+        "path": "*"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
+        "host": "checkout.dinelco.com.py",
+        "path": "*"
+      }
     }
   ],
   "billingOptions": {

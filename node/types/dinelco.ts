@@ -3,7 +3,6 @@ import { AuthorizationResponse } from '@vtex/payment-provider'
 export interface DinelcoConfig {
   apiKey: string
   environment: 'sandbox' | 'production'
-  callbackUrl: string
 }
 
 export interface CreateSessionRequest {

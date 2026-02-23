@@ -27,7 +27,7 @@ import {
 import { randomString } from './utils'
 
 class DinelcoPaymentConnector extends PaymentProvider {
-  private authorizationsBucket = 'dinelco_payments'
+  private authorizationsBucket = 'payments'
 
   public async authorize(
     authorization: AuthorizationRequest
@@ -37,7 +37,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
       const persistedData = await this.getPaymentData(authorization.paymentId)
       const persistedResponse = persistedData?.response
 
-      if (persistedResponse) {
+      if (persistedResponse != null) {
         // Si el estado aún es 'undefined', intentar actualizar consultando a Dinelco
         if (persistedResponse.status === 'undefined') {
           const updatedStatus = await this.getPaymentStatus(
@@ -66,10 +66,9 @@ class DinelcoPaymentConnector extends PaymentProvider {
         expirationDate: sessionResponse.expirationDate,
       }
 
-      // En todo caso podemos usar redirectURL para llevar a un enlace externo
       // Esto indica a VTEX que debe mostrar el Payment App
       const response: AuthorizationResponse = {
-        status: 'undefined',
+        status: 'approved',
         paymentId: authorization.paymentId,
         acquirer: 'Dinelco',
         code: 'undefined',
@@ -86,9 +85,9 @@ class DinelcoPaymentConnector extends PaymentProvider {
             token: sessionResponse.integrityToken,
             paymentId: authorization.paymentId,
             sessionId: sessionResponse.sessionId,
-            environment: this.getDinelcoConfig().environment,
+            environment: this.getDinelcoConfig(authorization).environment,
             validateUrl:
-              this.getDinelcoConfig().environment === 'sandbox'
+              this.getDinelcoConfig(authorization).environment === 'sandbox'
                 ? 'https://dev-sgwf-01.bepsa.com.py/d/api/checkout-session/validate'
                 : 'https://checkout.dinelco.com.py/d/api/checkout-session/validate',
             amount: sessionData.amount,
@@ -155,10 +154,10 @@ class DinelcoPaymentConnector extends PaymentProvider {
 
     // Metodo 2: Variables de entorno (desarrollo local con vtex link)
     const apiKey =
-      request.merchantSettings?.find((s: CustomField) => s.name === 'API Key')
+      request?.merchantSettings?.find((s: CustomField) => s.name === 'API Key')
         ?.value ??
       process.env.DINELCO_API_KEY ??
-      'di_sk_test_fallback' // Fallback para testing
+      'di_sk_fallback' // Fallback para testing
 
     const environment =
       // eslint-disable-next-line dot-notation
@@ -166,13 +165,12 @@ class DinelcoPaymentConnector extends PaymentProvider {
       process.env.DINELCO_ENVIRONMENT || // Desarrollo local
       'sandbox'
 
-    const callbackUrl =
-      customFields['Callback URL'] || process.env.DINELCO_CALLBACK_URL // Desarrollo local
+    // const callbackUrl =
+    //   customFields['Callback URL'] || process.env.DINELCO_CALLBACK_URL // Desarrollo local
 
     return {
       apiKey,
       environment: environment as 'sandbox' | 'production',
-      callbackUrl,
     }
   }
 
@@ -270,6 +268,11 @@ class DinelcoPaymentConnector extends PaymentProvider {
         vtexStatus = 'denied'
       }
 
+      // Ensure we have a valid ID for approved payments
+      // Fallback to sessionId if authorizationCode is missing
+      const authCode =
+        paymentStatus.authorizationCode?.toString() ?? sessionId.toString()
+
       const response: AuthorizationResponse = {
         status: vtexStatus,
         paymentId,
@@ -277,8 +280,8 @@ class DinelcoPaymentConnector extends PaymentProvider {
         code: paymentStatus.paymentStatus ?? 'undefined',
         message: paymentStatus.paymentMessage ?? 'Payment status checked',
         tid: sessionId.toString(), // Mantener sessionId como tid por consistencia hasta que finalice
-        authorizationId: paymentStatus.authorizationCode?.toString() ?? '',
-        nsu: paymentStatus.authorizationCode?.toString() ?? '',
+        authorizationId: authCode,
+        nsu: authCode,
       }
 
       // Guardar de forma unificada preservando la sesión
