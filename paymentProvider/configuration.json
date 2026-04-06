@@ -8,7 +8,7 @@
   ],
   "customFields": [
     {
-      "name": "API Key",
+      "name": "Dinelco Secret",
       "type": "password"
     },
     {

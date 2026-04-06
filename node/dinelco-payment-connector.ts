@@ -154,7 +154,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
 
     // Metodo 2: Variables de entorno (desarrollo local con vtex link)
     const apiKey =
-      request?.merchantSettings?.find((s: CustomField) => s.name === 'API Key')
+      request?.merchantSettings?.find((s: CustomField) => s.name === 'Dinelco Secret')
         ?.value ??
       process.env.DINELCO_API_KEY ??
       'di_sk_fallback' // Fallback para testing
