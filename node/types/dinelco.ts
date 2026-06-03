@@ -1,4 +1,4 @@
-import { AuthorizationResponse } from '@vtex/payment-provider'
+import { AuthorizationRequest, AuthorizationResponse } from '@vtex/payment-provider'
 
 export interface DinelcoConfig {
   apiKey: string
@@ -101,6 +101,7 @@ export interface DinelcoError {
 }
 
 export interface PersistedPaymentData {
-  response: AuthorizationResponse
+  response?: AuthorizationResponse
   session?: CreateSessionResponse
+  request?: AuthorizationRequest
 }

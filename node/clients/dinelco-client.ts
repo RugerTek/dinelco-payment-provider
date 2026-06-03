@@ -25,6 +25,7 @@ export class DinelcoClient extends ExternalClient {
 
     super(baseURL, context, {
       ...options,
+      timeout: 10000,
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${options.config.apiKey}`,

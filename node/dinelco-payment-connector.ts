@@ -19,9 +19,7 @@ import {
 
 import { DinelcoClient } from './clients/dinelco-client'
 import {
-  CreateSessionRequest,
   DinelcoConfig,
-  CreateSessionResponse,
   PersistedPaymentData,
 } from './types/dinelco'
 import { randomString } from './utils'
@@ -33,70 +31,63 @@ class DinelcoPaymentConnector extends PaymentProvider {
     authorization: AuthorizationRequest
   ): Promise<AuthorizationResponse> {
     try {
-      // Verificar si ya hay una respuesta guardada (de callbacks o consultas previas)
       const persistedData = await this.getPaymentData(authorization.paymentId)
-      const persistedResponse = persistedData?.response
 
-      if (persistedResponse != null) {
-        // Si el estado aún es 'undefined', intentar actualizar consultando a Dinelco
-        if (persistedResponse.status === 'undefined') {
-          const updatedStatus = await this.getPaymentStatus(
-            authorization.paymentId,
-            authorization
-          )
-
-          if (updatedStatus && updatedStatus.status !== 'undefined') {
-            return updatedStatus
-          }
+      if (persistedData?.response != null) {
+        if (persistedData.response.status !== 'undefined') {
+          return persistedData.response
         }
 
-        return persistedResponse
+        const updatedStatus = await this.getPaymentStatus(
+          authorization.paymentId,
+          authorization
+        )
+
+        if (updatedStatus && updatedStatus.status !== 'undefined') {
+          return updatedStatus
+        }
+
+        return persistedData.response
       }
 
-      const dinelcoClient = this.createDinelcoClient(authorization)
-      const sessionData = this.createSessionDataFromRequest(authorization)
+      const config = this.getDinelcoConfig(authorization)
+      const { workspace, account } = this.context.vtex
+      const host =
+        workspace === 'master'
+          ? `${account}.myvtex.com`
+          : `${workspace}--${account}.myvtex.com`
 
-      const sessionResponse = await dinelcoClient.createCheckoutSession(
-        sessionData
-      )
+      const isNoDecimalCurrency = authorization.currency === 'PYG'
+      const amount = isNoDecimalCurrency
+        ? Math.round(authorization.value)
+        : parseFloat((authorization.value / 100).toFixed(2))
 
-      const session: CreateSessionResponse = {
-        sessionId: sessionResponse.sessionId,
-        integrityToken: sessionResponse.integrityToken,
-        expirationDate: sessionResponse.expirationDate,
-      }
-
-      // Esto indica a VTEX que debe mostrar el Payment App
       const response: AuthorizationResponse = {
-        status: 'approved',
+        status: 'undefined',
         paymentId: authorization.paymentId,
         acquirer: 'Dinelco',
         code: 'undefined',
         message: 'Payment pending - opening Dinelco Payment App',
-        tid: sessionResponse.sessionId.toString(),
+        tid: authorization.paymentId,
         authorizationId: randomString(),
         nsu: randomString(),
         delayToCancel: 300000,
-        delayToAutoSettle: 0,
-        // Payment App Data - VTEX usará esto para mostrar el Payment App
         paymentAppData: {
-          appName: 'bepsapartnerpy.dinelco-payment-app', // vendor.appName según manifest
+          appName: 'bepsapartnerpy.dinelco-payment-app',
           payload: JSON.stringify({
-            token: sessionResponse.integrityToken,
             paymentId: authorization.paymentId,
-            sessionId: sessionResponse.sessionId,
-            environment: this.getDinelcoConfig(authorization).environment,
-            validateUrl:
-              this.getDinelcoConfig(authorization).environment === 'sandbox'
-                ? 'https://dev-sgwf-01.bepsa.com.py/d/api/checkout-session/validate'
-                : 'https://checkout.dinelco.com.py/d/api/checkout-session/validate',
-            amount: sessionData.amount,
-            currency: sessionData.currency,
+            sessionEndpoint: `https://${host}/_v/dinelco/session/${authorization.paymentId}`,
+            environment: config.environment,
+            amount,
+            currency: authorization.currency || 'PYG',
           }),
         },
       }
 
-      await this.persistPayment(authorization, response, session)
+      await this.persistPaymentData(authorization.paymentId, {
+        response,
+        request: authorization,
+      })
 
       return response
     } catch (error) {
@@ -171,62 +162,6 @@ class DinelcoPaymentConnector extends PaymentProvider {
     return {
       apiKey,
       environment: environment as 'sandbox' | 'production',
-    }
-  }
-
-  private async persistPayment(
-    req: AuthorizationRequest,
-    resp: AuthorizationResponse,
-    session?: CreateSessionResponse
-  ) {
-    await this.persistPaymentData(req.paymentId, {
-      response: resp,
-      session,
-    })
-  }
-
-  private createSessionDataFromRequest(
-    request: AuthorizationRequest
-  ): CreateSessionRequest {
-    // Handling different currencies
-    // PYG does not use decimals, VTEX sends the value as is.
-    // For currencies with 2 decimals (like USD), VTEX sends the value multiplied by 100.
-    // Dinelco expects the amount in the base unit (no decimals for PYG, with decimals for USD).
-    const isNoDecimalCurrency = request.currency === 'PYG'
-    const amount = isNoDecimalCurrency
-      ? Math.round(request.value)
-      : parseFloat((request.value / 100).toFixed(2))
-
-    return {
-      clientReferenceId: request.paymentId,
-      amount,
-      currency: request.currency || 'PYG',
-      targetOrigin: 'https://checkout.vtex.com',
-      // Callback URL: Dinelco enviará notificaciones aquí (opcional)
-      // Por ahora lo dejamos undefined y usaremos polling/consultas para verificar el estado
-      callbackUrl: request.callbackUrl, // Solo si el merchant lo configura
-      returnUrl: request.returnUrl,
-      lineItems: [
-        {
-          name: 'Compra VTEX',
-          description: `Pago para orden ${request.orderId ||
-            request.paymentId}`,
-          price: amount,
-          quantity: 1,
-        },
-      ],
-      metadata: {
-        orderId: request.orderId || '',
-        paymentId: request.paymentId,
-        vtexAccount: this.context.vtex.account,
-      },
-      customer: {
-        customerId: request.paymentId,
-        name: request.miniCart?.buyer?.firstName ?? '',
-        lastname: request.miniCart?.buyer?.lastName ?? '',
-        email: request.miniCart?.buyer?.email ?? '',
-        phone: request.miniCart?.buyer?.phone ?? '',
-      },
     }
   }
 
