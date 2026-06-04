@@ -56,15 +56,29 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
       return
     }
 
-    // Return cached session if already created
+    // Session already created — check current payment status from Dinelco
     if (persistedData.session?.sessionId) {
       const config = getDinelcoConfig(persistedData.request)
+      const dinelcoClient = new DinelcoClient(ctx.vtex as IOContext, { config })
+
+      let paymentStatus: string | undefined
+
+      try {
+        const statusResponse = await dinelcoClient.queryPaymentStatus(
+          persistedData.session.sessionId
+        )
+
+        paymentStatus = statusResponse.paymentStatus
+      } catch {
+        // If status check fails, return without paymentStatus
+      }
 
       ctx.status = 200
       ctx.body = {
         token: persistedData.session.integrityToken,
         sessionId: persistedData.session.sessionId,
         validateUrl: getValidateUrl(config.environment),
+        paymentStatus,
       }
       await next()
       return
