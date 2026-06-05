@@ -62,6 +62,7 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
       const dinelcoClient = new DinelcoClient(ctx.vtex as IOContext, { config })
 
       let paymentStatus: string | undefined
+      let authorizationCode: string | undefined
 
       try {
         const statusResponse = await dinelcoClient.queryPaymentStatus(
@@ -69,8 +70,27 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
         )
 
         paymentStatus = statusResponse.paymentStatus
+        authorizationCode = statusResponse.authorizationCode?.toString()
       } catch {
         // If status check fails, return without paymentStatus
+      }
+
+      // If APPROVED or REJECTED, persist the final response so authorize()
+      // returns it directly on the next VTEX retry without calling Dinelco again
+      if (paymentStatus === 'APPROVED' || paymentStatus === 'REJECTED') {
+        const finalStatus = paymentStatus === 'APPROVED' ? 'approved' : 'denied'
+        const authId = authorizationCode ?? persistedData.response?.authorizationId ?? ''
+
+        await ctx.clients.vbase.saveJSON(PAYMENTS_BUCKET, paymentId, {
+          ...persistedData,
+          response: {
+            ...persistedData.response,
+            status: finalStatus,
+            authorizationId: authId,
+            code: paymentStatus,
+            message: `Payment ${finalStatus} by Dinelco`,
+          },
+        })
       }
 
       ctx.status = 200
