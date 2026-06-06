@@ -114,11 +114,19 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
       ? Math.round(request.value)
       : parseFloat((request.value / 100).toFixed(2))
 
+    const account = ctx.vtex.account
+    const requestOrigin = (ctx.request.headers['origin'] as string) || ''
+    const baseOrigin = `https://${account}.myvtex.com`
+    const targetOrigin =
+      requestOrigin && requestOrigin !== baseOrigin
+        ? `${baseOrigin},${requestOrigin}`
+        : baseOrigin
+
     const sessionResponse = await dinelcoClient.createCheckoutSession({
       clientReferenceId: request.paymentId,
       amount,
       currency: request.currency || 'PYG',
-      targetOrigin: 'https://checkout.vtex.com',
+      targetOrigin,
       callbackUrl: request.callbackUrl,
       returnUrl: request.returnUrl,
       lineItems: [
