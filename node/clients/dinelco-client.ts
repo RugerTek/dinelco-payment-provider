@@ -46,15 +46,20 @@ export class DinelcoClient extends ExternalClient {
         }
       )
     } catch (error) {
-      if (error.response?.data) {
-        const dinelcoError = error.response.data as DinelcoError
+      const status = error.response?.status
+      const data = error.response?.data
 
+      if (data) {
+        const dinelcoError = data as DinelcoError
         throw new Error(
-          `Dinelco API Error: ${dinelcoError.message || dinelcoError.error}`
+          `Dinelco API Error [${status}]: ${dinelcoError.message || dinelcoError.error || JSON.stringify(data)}`
         )
       }
 
-      throw new Error('Failed to create Dinelco checkout session')
+      // No response = timeout or connection error
+      throw new Error(
+        `Dinelco connection failed [${error.code || 'NO_RESPONSE'}]: ${error.message || String(error)}`
+      )
     }
   }
 
