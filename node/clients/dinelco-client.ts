@@ -73,7 +73,7 @@ export class DinelcoClient extends ExternalClient {
   }> {
     try {
       const response = await this.http.get(
-        `/dinelco-checkout/api/v1/checkout-sessions/${sessionId}`,
+        `/dinelco-checkout/api/v1/checkout-session/${sessionId}`,
         {
           metric: 'dinelco-query-session',
         }
