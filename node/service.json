@@ -9,6 +9,6 @@
     "dinelcoCreateSession": {
       "path": "/_v/dinelco/session/:paymentId",
       "public": true
-    },
+    }
   }
 }
