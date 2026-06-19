@@ -125,7 +125,7 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
       amount,
       currency: request.currency || 'PYG',
       targetOrigin: `https://${storeHost}`,
-      callbackUrl: `https://${storeHost}/_v/dinelco/callback`,
+      callbackUrl: request.callbackUrl,
       returnUrl: request.returnUrl,
       lineItems: [
         {
