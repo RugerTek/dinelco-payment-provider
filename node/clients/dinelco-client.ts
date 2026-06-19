@@ -5,6 +5,7 @@ import {
   CreateSessionResponse,
   DinelcoConfig,
   DinelcoError,
+  ReversePaymentResponse,
 } from '../types/dinelco'
 
 const DINELCO_URLS = {
@@ -74,6 +75,7 @@ export class DinelcoClient extends ExternalClient {
     paymentStatus?: 'APPROVED' | 'REJECTED' | 'PROCESSING'
     paymentMessage?: string
     authorizationCode?: string
+    operationNumber?: number
     raw?: any
   }> {
     try {
@@ -84,16 +86,42 @@ export class DinelcoClient extends ExternalClient {
         }
       )
 
-      // El estado de la sesión y del pago están en la respuesta
       return {
         sessionStatus: response.sessionStatus,
         paymentStatus: response.payment?.status,
         paymentMessage: response.payment?.message,
         authorizationCode: response.payment?.authorizationCode,
+        operationNumber: response.payment?.operationNumber,
         raw: response,
       }
     } catch (error) {
       throw new Error('Failed to query Dinelco session status')
+    }
+  }
+
+  public async reversePayment(
+    operationNumber: string,
+    clientReferenceId?: string
+  ): Promise<ReversePaymentResponse> {
+    try {
+      return await this.http.post<ReversePaymentResponse>(
+        '/api/v1/payment/reversal',
+        { operationNumber, clientReferenceId },
+        { metric: 'dinelco-reverse-payment' }
+      )
+    } catch (error) {
+      const status = error.response?.status
+      const data = error.response?.data
+
+      if (data) {
+        throw new Error(
+          `Dinelco Reversal Error [${status}]: ${data.message || JSON.stringify(data)}`
+        )
+      }
+
+      throw new Error(
+        `Dinelco reversal failed [${error.code || 'NO_RESPONSE'}]: ${error.message || String(error)}`
+      )
     }
   }
 }

@@ -71,7 +71,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
         tid: authorization.paymentId,
         authorizationId: randomString(),
         nsu: randomString(),
-        delayToCancel: 300000,
+        delayToCancel: 1800000,
         paymentAppData: {
           appName: 'bepsapartnerpy.dinelco-payment-app',
           payload: JSON.stringify({
@@ -104,13 +104,55 @@ class DinelcoPaymentConnector extends PaymentProvider {
   public async cancel(
     cancellation: CancellationRequest
   ): Promise<CancellationResponse> {
-    return Cancellations.manual(cancellation)
+    try {
+      const persistedData = await this.getPaymentData(cancellation.paymentId)
+      const operationNumber = persistedData?.operationNumber
+
+      if (!operationNumber) {
+        return Cancellations.approve(cancellation, {
+          cancellationId: `void-${cancellation.paymentId}`,
+        })
+      }
+
+      const dinelcoClient = this.createDinelcoClient(persistedData?.request)
+      const reversal = await dinelcoClient.reversePayment(operationNumber, cancellation.paymentId)
+
+      if (reversal.reversal.status === 'APPROVED') {
+        return Cancellations.approve(cancellation, {
+          cancellationId: reversal.reversal.id,
+        })
+      }
+
+      return Cancellations.manual(cancellation)
+    } catch (error) {
+      return Cancellations.manual(cancellation)
+    }
   }
 
   public async refund(refund: RefundRequest): Promise<RefundResponse> {
-    // Dinelco no soporta reembolsos programáticos
-    // Los reembolsos deben hacerse manualmente desde el panel de Dinelco
-    return Refunds.manual(refund)
+    try {
+      const persistedData = await this.getPaymentData(refund.paymentId)
+      const operationNumber = persistedData?.operationNumber
+
+      if (!operationNumber) {
+        return Refunds.manual(refund)
+      }
+
+      const dinelcoClient = this.createDinelcoClient(persistedData?.request)
+      const reversal = await dinelcoClient.reversePayment(operationNumber, refund.paymentId)
+
+      if (reversal.reversal.status === 'APPROVED') {
+        return Refunds.approve(refund, {
+          refundId: reversal.reversal.id,
+        })
+      }
+
+      return Refunds.deny(refund, {
+        message: reversal.reversal.message,
+      })
+    } catch (error) {
+      return Refunds.manual(refund)
+    }
   }
 
   public async settle(
@@ -139,25 +181,17 @@ class DinelcoPaymentConnector extends PaymentProvider {
   }
 
   private getDinelcoConfig(request?: any): DinelcoConfig {
-    // En VTEX IO, los custom fields vienen en el request del payment provider
-    // Metodo 1: Custom Fields (producción) - vienen en request.customFields
-    const customFields = request?.customFields || {}
-
-    // Metodo 2: Variables de entorno (desarrollo local con vtex link)
     const apiKey =
       request?.merchantSettings?.find((s: CustomField) => s.name === 'Dinelco Secret')
         ?.value ??
       process.env.DINELCO_API_KEY ??
-      'di_sk_fallback' // Fallback para testing
+      'di_sk_fallback'
 
     const environment =
-      // eslint-disable-next-line dot-notation
-      customFields['Environment'] || // Desde admin VTEX
-      process.env.DINELCO_ENVIRONMENT || // Desarrollo local
+      request?.merchantSettings?.find((s: CustomField) => s.name === 'Environment')
+        ?.value ??
+      process.env.DINELCO_ENVIRONMENT ??
       'sandbox'
-
-    // const callbackUrl =
-    //   customFields['Callback URL'] || process.env.DINELCO_CALLBACK_URL // Desarrollo local
 
     return {
       apiKey,
@@ -214,15 +248,16 @@ class DinelcoPaymentConnector extends PaymentProvider {
         acquirer: 'Dinelco',
         code: paymentStatus.paymentStatus ?? 'undefined',
         message: paymentStatus.paymentMessage ?? 'Payment status checked',
-        tid: sessionId.toString(), // Mantener sessionId como tid por consistencia hasta que finalice
+        tid: sessionId.toString(),
         authorizationId: authCode,
         nsu: authCode,
       }
 
-      // Guardar de forma unificada preservando la sesión
       await this.persistPaymentData(paymentId, {
         response,
         session: persistedData.session,
+        request: persistedData.request,
+        operationNumber: paymentStatus.operationNumber?.toString(),
       })
 
       return response

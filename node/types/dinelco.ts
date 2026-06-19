@@ -100,8 +100,25 @@ export interface DinelcoError {
   statusCode: number
 }
 
+export interface ReversePaymentResponse {
+  paymentId: number
+  clientReferenceId: string
+  paymentStatus: 'VOIDED' | 'APPROVED'
+  amount: number
+  currency: string
+  operationNumber: string
+  reversal: {
+    id: string
+    message: string
+    status: 'APPROVED' | 'REJECTED'
+    responseCode: string
+    transactionDate: string
+  }
+}
+
 export interface PersistedPaymentData {
   response?: AuthorizationResponse
   session?: CreateSessionResponse
   request?: AuthorizationRequest
+  operationNumber?: string
 }

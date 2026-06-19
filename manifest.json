@@ -29,6 +29,13 @@
     {
       "name": "outbound-access",
       "attrs": {
+        "host": "*.vtexpayments.com.br",
+        "path": "/payment-provider/transactions/*"
+      }
+    },
+    {
+      "name": "outbound-access",
+      "attrs": {
         "host": "dev-sgwf-01.bepsa.com.py",
         "path": "*"
       }

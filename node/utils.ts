@@ -3,7 +3,3 @@ export const randomString = () => {
     .toString(36)
     .substring(7)
 }
-
-export const randomUrl = () => {
-  return `https://${randomString()}.com`
-}

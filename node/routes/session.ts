@@ -13,7 +13,7 @@ function getDinelcoConfig(request: any): DinelcoConfig {
     'di_sk_fallback'
 
   const environment =
-    request?.customFields?.['Environment'] ??
+    request?.merchantSettings?.find((s: CustomField) => s.name === 'Environment')?.value ??
     process.env.DINELCO_ENVIRONMENT ??
     'sandbox'
 
@@ -63,6 +63,7 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
 
       let paymentStatus: string | undefined
       let authorizationCode: string | undefined
+      let operationNumber: string | undefined
 
       try {
         const statusResponse = await dinelcoClient.queryPaymentStatus(
@@ -71,18 +72,18 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
 
         paymentStatus = statusResponse.paymentStatus
         authorizationCode = statusResponse.authorizationCode?.toString()
+        operationNumber = statusResponse.operationNumber?.toString()
       } catch {
         // If status check fails, return without paymentStatus
       }
 
-      // If APPROVED or REJECTED, persist the final response so authorize()
-      // returns it directly on the next VTEX retry without calling Dinelco again
       if (paymentStatus === 'APPROVED' || paymentStatus === 'REJECTED') {
         const finalStatus = paymentStatus === 'APPROVED' ? 'approved' : 'denied'
         const authId = authorizationCode ?? persistedData.response?.authorizationId ?? ''
 
         await ctx.clients.vbase.saveJSON(PAYMENTS_BUCKET, paymentId, {
           ...persistedData,
+          operationNumber,
           response: {
             ...persistedData.response,
             status: finalStatus,
@@ -124,7 +125,7 @@ export async function dinelcoCreateSession(ctx: any, next: () => Promise<any>) {
       amount,
       currency: request.currency || 'PYG',
       targetOrigin: `https://${storeHost}`,
-      callbackUrl: request.callbackUrl,
+      callbackUrl: `https://${storeHost}/_v/dinelco/callback`,
       returnUrl: request.returnUrl,
       lineItems: [
         {

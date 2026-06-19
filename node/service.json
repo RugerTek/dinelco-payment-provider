@@ -9,6 +9,10 @@
     "dinelcoCreateSession": {
       "path": "/_v/dinelco/session/:paymentId",
       "public": true
+    },
+    "dinelcoCallback": {
+      "path": "/_v/dinelco/callback",
+      "public": true
     }
   }
 }
