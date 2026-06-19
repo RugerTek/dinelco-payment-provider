@@ -1,5 +1,3 @@
-import axios from 'axios'
-
 import { CallbackPayload } from '../types/dinelco'
 
 const PAYMENTS_BUCKET = 'payments'
@@ -58,15 +56,6 @@ export async function dinelcoCallback(ctx: any, next: () => Promise<any>) {
         },
       })
 
-      // Trigger VTEX to immediately retry authorize() instead of waiting hours
-      const vtexRetryUrl = persistedData.request.callbackUrl
-      if (vtexRetryUrl) {
-        try {
-          await axios.post(vtexRetryUrl, {}, { timeout: 5000 })
-        } catch {
-          // Non-critical: VTEX will retry on its own schedule if this fails
-        }
-      }
     }
 
     ctx.status = 200
