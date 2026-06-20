@@ -1,6 +1,30 @@
+import * as https from 'https'
+import { URL } from 'url'
+
 import { PersistedPaymentData } from '../types/dinelco'
 
 const PAYMENTS_BUCKET = 'payments'
+
+function postToUrl(urlString: string): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const parsed = new URL(urlString)
+      const req = https.request(
+        {
+          hostname: parsed.hostname,
+          path: parsed.pathname + parsed.search,
+          method: 'POST',
+          headers: { 'Content-Length': '0' },
+        },
+        () => resolve()
+      )
+      req.on('error', () => resolve())
+      req.end()
+    } catch {
+      resolve()
+    }
+  })
+}
 
 export async function dinelcoCancel(ctx: any, next: () => Promise<any>) {
   const { paymentId } = ctx.vtex.route.params as { paymentId: string }
@@ -29,7 +53,7 @@ export async function dinelcoCancel(ctx: any, next: () => Promise<any>) {
       return
     }
 
-    // Only mark as denied if still pending — don't override an already-approved payment
+    // Only act if still pending — don't override an already-approved payment
     if (persistedData.response?.status === 'undefined') {
       await ctx.clients.vbase.saveJSON(PAYMENTS_BUCKET, paymentId, {
         ...persistedData,
@@ -40,6 +64,13 @@ export async function dinelcoCancel(ctx: any, next: () => Promise<any>) {
           message: 'Payment cancelled by user',
         },
       })
+
+      // Trigger VTEX to immediately retry authorize() so it reads the denied status
+      // from VBase before transactionValidation.vtex fires in the payment app
+      const retryUrl = persistedData.request.callbackUrl
+      if (retryUrl) {
+        await postToUrl(retryUrl)
+      }
     }
 
     ctx.status = 200
