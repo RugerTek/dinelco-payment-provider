@@ -9,6 +9,10 @@
     "dinelcoCreateSession": {
       "path": "/_v/dinelco/session/:paymentId",
       "public": true
+    },
+    "dinelcoCancel": {
+      "path": "/_v/dinelco/cancel/:paymentId",
+      "public": true
     }
   }
 }

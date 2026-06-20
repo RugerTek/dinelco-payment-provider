@@ -77,6 +77,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
           payload: JSON.stringify({
             paymentId: authorization.paymentId,
             sessionEndpoint: `https://${host}/_v/dinelco/session/${authorization.paymentId}`,
+            cancelEndpoint: `https://${host}/_v/dinelco/cancel/${authorization.paymentId}`,
             environment: config.environment,
             amount,
             currency: authorization.currency || 'PYG',
