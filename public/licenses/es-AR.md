@@ -21,4 +21,4 @@ Bepsa provee esta app "tal como está", sin garantías de ningún tipo. Bepsa no
 
 ## 5. Soporte
 
-Para soporte técnico: soporte@bepsa.com.py | https://www.bepsa.com.py
+Para soporte técnico: contacto@bepsa.com.py | https://www.bepsa.com.py
