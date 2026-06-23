@@ -1,4 +1,4 @@
-import { AuthorizationResponse } from '@vtex/payment-provider'
+import { AuthorizationRequest, AuthorizationResponse } from '@vtex/payment-provider'
 
 export interface DinelcoConfig {
   apiKey: string
@@ -100,7 +100,25 @@ export interface DinelcoError {
   statusCode: number
 }
 
+export interface ReversePaymentResponse {
+  paymentId: number
+  clientReferenceId: string
+  paymentStatus: 'VOIDED' | 'APPROVED'
+  amount: number
+  currency: string
+  operationNumber: string
+  reversal: {
+    id: string
+    message: string
+    status: 'APPROVED' | 'REJECTED'
+    responseCode: string
+    transactionDate: string
+  }
+}
+
 export interface PersistedPaymentData {
-  response: AuthorizationResponse
+  response?: AuthorizationResponse
   session?: CreateSessionResponse
+  request?: AuthorizationRequest
+  operationNumber?: string
 }

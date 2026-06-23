@@ -1,7 +1,7 @@
 {
   "name": "dinelco-payment-provider",
   "vendor": "bepsapartnerpy",
-  "version": "2.0.1",
+  "version": "2.1.1",
   "title": "Dinelco Payment Provider",
   "description": "Dinelco Payment-Provider",
   "builders": {
@@ -41,8 +41,16 @@
       }
     }
   ],
+  "dependencies": {
+    "bepsapartnerpy.dinelco-payment-app": "4.x"
+  },
   "billingOptions": {
-    "type": "free"
+    "type": "free",
+    "support": {
+      "email": "productos@bepsa.com.py",
+      "url": "https://www.bepsa.com.py"
+    },
+    "availableCountries": ["PY"]
   },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
 }

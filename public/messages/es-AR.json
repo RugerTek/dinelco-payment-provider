@@ -1,0 +1,19 @@
+{
+  "name": "Dinelco Payment",
+  "headline": "Aceptá pagos en Paraguay a través del checkout seguro de Dinelco",
+  "overview": "Habilitá tu tienda en Paraguay para aceptar pagos de Dinelco directamente en el checkout de VTEX. Experiencia de iframe embebido, soporte para Guaraníes (PYG) y confirmación de pago en tiempo real.",
+  "features": [
+    "Procesamiento de pagos seguro a través de Dinelco",
+    "Soporte nativo para Guaraníes paraguayos (PYG)",
+    "Checkout embebido en iframe — los clientes nunca abandonan tu tienda",
+    "Actualizaciones de estado de pago en tiempo real",
+    "Anulación automática de sesiones abandonadas",
+    "Ambientes sandbox y producción disponibles"
+  ],
+  "websiteURL": "https://www.dinelco.com.py",
+  "support": {
+    "email": "productos@bepsa.com.py",
+    "url": "https://www.bepsa.com.py"
+  },
+  "additionalInformation": "Requiere una cuenta de comerciante Dinelco válida y credenciales de API. Contactá a Dinelco o Bepsa para obtener tu clave secreta. Esta integración está destinada a comercios que operan en Paraguay."
+}
