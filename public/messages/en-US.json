@@ -12,7 +12,7 @@
   ],
   "websiteURL": "https://www.dinelco.com.py",
   "support": {
-    "email": "contacto@bepsa.com.py",
+    "email": "productos@bepsa.com.py",
     "url": "https://www.bepsa.com.py"
   },
   "additionalInformation": "Requires a valid Dinelco merchant account and API credentials. Contact Dinelco or Bepsa to obtain your Dinelco Secret key. This integration is intended for merchants operating in Paraguay."

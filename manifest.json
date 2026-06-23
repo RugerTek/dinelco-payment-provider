@@ -47,7 +47,7 @@
   "billingOptions": {
     "type": "free",
     "support": {
-      "email": "soporte@bepsa.com.py",
+      "email": "productos@bepsa.com.py",
       "url": "https://www.bepsa.com.py"
     },
     "availableCountries": ["PY"]

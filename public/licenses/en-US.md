@@ -21,4 +21,4 @@ Bepsa provides this app "as is" without warranties of any kind. Bepsa is not lia
 
 ## 5. Support
 
-For technical support, contact: contacto@bepsa.com.py | https://www.bepsa.com.py
+For technical support, contact: productos@bepsa.com.py | https://www.bepsa.com.py
