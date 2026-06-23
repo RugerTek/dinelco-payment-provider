@@ -42,7 +42,7 @@
     }
   ],
   "dependencies": {
-    "bepsapartnerpy.dinelco-payment-app": "2.x"
+    "bepsapartnerpy.dinelco-payment-app": "3.x"
   },
   "billingOptions": {
     "type": "free",
