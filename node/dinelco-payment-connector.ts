@@ -104,29 +104,7 @@ class DinelcoPaymentConnector extends PaymentProvider {
   public async cancel(
     cancellation: CancellationRequest
   ): Promise<CancellationResponse> {
-    try {
-      const persistedData = await this.getPaymentData(cancellation.paymentId)
-      const operationNumber = persistedData?.operationNumber
-
-      if (!operationNumber) {
-        return Cancellations.approve(cancellation, {
-          cancellationId: `void-${cancellation.paymentId}`,
-        })
-      }
-
-      const dinelcoClient = this.createDinelcoClient(persistedData?.request)
-      const reversal = await dinelcoClient.reversePayment(operationNumber, cancellation.paymentId)
-
-      if (reversal.reversal.status === 'APPROVED') {
-        return Cancellations.approve(cancellation, {
-          cancellationId: reversal.reversal.id,
-        })
-      }
-
-      return Cancellations.manual(cancellation)
-    } catch (error) {
-      return Cancellations.manual(cancellation)
-    }
+    return Cancellations.manual(cancellation)
   }
 
   public async refund(refund: RefundRequest): Promise<RefundResponse> {
