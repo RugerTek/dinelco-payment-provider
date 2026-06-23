@@ -1,7 +1,7 @@
 {
   "name": "dinelco-payment-provider",
   "vendor": "bepsapartnerpy",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "title": "Dinelco Payment Provider",
   "description": "Dinelco Payment-Provider",
   "builders": {
@@ -50,7 +50,7 @@
       "email": "productos@bepsa.com.py",
       "url": "https://www.bepsa.com.py"
     },
-    "availableCountries": ["PY"]
+    "availableCountries": ["PRY"]
   },
   "$schema": "https://raw.githubusercontent.com/vtex/node-vtex-api/master/gen/manifest.schema"
 }
