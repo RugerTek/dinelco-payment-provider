@@ -9,7 +9,7 @@ import {
 } from '../types/dinelco'
 
 const DINELCO_URLS = {
-  sandbox: 'https://dev-sgwf-01.bepsa.com.py',
+  sandbox: 'https://test-checkout.dinelco.com.py',
   production: 'https://checkout.dinelco.com.py',
 }
 
