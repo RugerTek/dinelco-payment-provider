@@ -1,3 +1,4 @@
+import { URL } from 'url'
 import { IOContext } from '@vtex/api'
 import { CustomField } from '@vtex/payment-provider'
 
@@ -36,9 +37,9 @@ function toHttpsOrigin(value?: string): string | undefined {
   if (!value) return undefined
 
   try {
-    const url = new URL(value)
+    const parsed = new URL(value)
 
-    return url.protocol === 'https:' ? url.origin : undefined
+    return parsed.protocol === 'https:' ? parsed.origin : undefined
   } catch {
     return undefined
   }
